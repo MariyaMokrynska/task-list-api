@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort, make_response, Response
 from ..db import db
 from .route_utilities import validate_model, update_dict_to_database, add_dict_to_database
 from app.models.task import Task
-
+from sqlalchemy import desc
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -16,7 +16,16 @@ def create_task():
 
 @tasks_bp.get("")
 def get_all_tasks():
-    query = db.select(Task).order_by(Task.id)
+    query = db.select(Task)
+    sort_param = request.args.get("sort", "asc")
+    if sort_param == "asc":
+        query = query.order_by(Task.title)
+    elif sort_param == "desc":
+        query = query.order_by(desc(Task.title))
+    else:
+        response = {"details": "Wrong parameter value"}
+        abort(make_response(response, 400))
+
     tasks = db.session.scalars(query)
 
     tasks_response = []
