@@ -4,6 +4,9 @@ from .route_utilities import validate_model, update_dict_to_database, add_dict_t
 from app.models.task import Task
 from sqlalchemy import desc
 import datetime
+import requests
+import json
+import os
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -54,6 +57,18 @@ def update_task(id):
 def patch_task_mark_complete(id):
 
     update_complete_at_to_database(Task, id, datetime.datetime.now())
+
+    headers = {
+        "Authorization": "Bearer "+os.environ.get('SLACK_TOKEN'),
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "channel": os.environ.get('SLACK_CHANNEL'),
+        "text": "HELLO"
+    }
+    r = requests.post('https://slack.com/api/chat.postMessage',
+                      data=json.dumps(payload), headers=headers)
+    print(r.text)
 
     return Response(status=204, mimetype="application/json")
 
