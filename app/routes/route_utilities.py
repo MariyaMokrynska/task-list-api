@@ -14,7 +14,7 @@ def validate_model(cls, model_id):
     model = db.session.scalar(query)
 
     if model is None:
-        response = {"message": f"Task {model_id} not found"}
+        response = {"message": f"{cls.__name__} {model_id} not found"}
         abort(make_response(response, 404))
 
     return model
@@ -35,12 +35,17 @@ def add_dict_to_database(cls, data):
 
 def update_dict_to_database(cls, id, data):
     new_instance = cls.from_dict(data)
-
     old_instance = validate_model(cls, id)
-    if old_instance is None:
-        return None
 
     old_instance.update(new_instance)
     db.session.commit()
 
     return old_instance
+
+
+def update_complete_at_to_database(cls, id, complete_at):
+    old_instance = validate_model(cls, id)
+    old_instance.completed_at = complete_at
+
+    # old_instance.update(old_instance)
+    db.session.commit()
